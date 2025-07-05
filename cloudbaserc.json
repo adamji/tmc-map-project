@@ -1,0 +1,39 @@
+{
+  "envId": "你的环境ID",
+  "version": "2.0",
+  "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
+  "functionRoot": "./functions",
+  "functions": [],
+  "framework": {
+    "name": "tmc-map",
+    "plugins": {
+      "container": {
+        "use": "@cloudbase/framework-plugin-container",
+        "inputs": {
+          "serviceName": "tmc-map-backend",
+          "servicePath": "./tmc-map-backend",
+          "uploadType": "image",
+          "registryType": "tcr",
+          "dockerfilePath": "./tmc-map-backend/Dockerfile",
+          "buildDir": "./tmc-map-backend",
+          "containerPort": 8080,
+          "minNum": 0,
+          "maxNum": 50,
+          "cpu": 1,
+          "mem": 2,
+          "target": "container",
+          "envVariables": {
+            "SPRING_PROFILES_ACTIVE": "prod",
+            "SERVER_PORT": "8080"
+          },
+          "customLogs": "stdout",
+          "dataBaseName": "tmc_map",
+          "vpc": {
+            "vpcId": "",
+            "subnetId": ""
+          }
+        }
+      }
+    }
+  }
+} 

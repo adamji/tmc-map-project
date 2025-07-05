@@ -1,0 +1,50 @@
+/* 图标字体样式 */
+@font-face {
+  font-family: "iconfont";
+  src: url('data:application/x-font-woff2;charset=utf-8;base64,') format('woff2');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 图标定义 */
+.icon-location:before {
+  content: "📍";
+}
+
+.icon-calendar:before {
+  content: "📅";
+}
+
+.icon-navigation:before {
+  content: "🧭";
+}
+
+.icon-info:before {
+  content: "ℹ️";
+}
+
+.icon-clock:before {
+  content: "🕒";
+}
+
+.icon-phone:before {
+  content: "📞";
+}
+
+.icon-user:before {
+  content: "👤";
+}
+
+.icon-users:before {
+  content: "👥";
+}
+
+.icon-location-o:before {
+  content: "📍";
+} 

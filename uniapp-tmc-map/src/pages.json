@@ -1,0 +1,43 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "头马演讲俱乐部地图",
+				"navigationBarBackgroundColor": "#2d8cf0",
+				"navigationBarTextStyle": "white",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/club-detail/club-detail",
+			"style": {
+				"navigationBarTitleText": "俱乐部详情",
+				"navigationBarBackgroundColor": "#2d8cf0",
+				"navigationBarTextStyle": "white",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/navigation/navigation",
+			"style": {
+				"navigationBarTitleText": "导航",
+				"navigationBarBackgroundColor": "#2d8cf0",
+				"navigationBarTextStyle": "white",
+				"enablePullDownRefresh": false
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "头马演讲俱乐部地图",
+		"navigationBarBackgroundColor": "#2d8cf0",
+		"backgroundColor": "#f7f8fa"
+	},
+	"uniIdRouter": {},
+	"permission": {
+		"scope.userLocation": {
+			"desc": "您的位置信息将用于小程序位置接口的效果展示"
+		}
+	}
+} 

@@ -1,0 +1,78 @@
+{
+    "name" : "头马俱乐部地图",
+    "appid" : "__UNI__TMC_MAP",
+    "description" : "头马俱乐部地图小程序",
+    "versionName" : "1.0.0",
+    "versionCode" : "100",
+    "transformPx" : false,
+    "mp-weixin" : {
+        "appid" : "wx7fb77d9708797ce0",
+        "setting" : {
+            "urlCheck" : true,
+            "es6" : true,
+            "enhance" : true,
+            "postcss" : true,
+            "preloadBackgroundData" : false,
+            "minified" : true,
+            "newFeature" : false,
+            "coverView" : true,
+            "nodeModules" : false,
+            "autoAudits" : false,
+            "showShadowRootLog" : false,
+            "scopeDataCheck" : false,
+            "uglifyFileName" : false,
+            "checkInvalidKey" : true,
+            "checkSiteMap" : true,
+            "uploadWithSourceMap" : true,
+            "compileHotReLoad" : false,
+            "lazyloadPlaceholderEnable" : false,
+            "useMultiFrameRuntime" : true,
+            "useApiHook" : true,
+            "useApiHostProcess" : true,
+            "babelSetting" : {
+                "ignore" : [],
+                "disablePlugins" : [],
+                "outputPath" : ""
+            },
+            "enableEngineNative" : false,
+            "useIsolateContext" : true,
+            "userConfirmedBundleSwitch" : false,
+            "packNpmManually" : false,
+            "packNpmRelationList" : [],
+            "minifyWXSS" : true,
+            "disableUseStrict" : false,
+            "minifyWXML" : true,
+            "showES6CompileOption" : false,
+            "useCompilerPlugins" : false
+        },
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        "optimize" : {
+            "subPackages" : true
+        },
+        "uniStatistics" : {
+            "enable" : false
+        },
+        "permission" : {
+            "scope.userLocation" : {
+                "desc" : "您的位置信息将用于小程序位置接口的效果展示"
+            }
+        },
+        "requiredPrivateInfos" : ["getLocation", "chooseLocation"],
+        "networkTimeout" : {
+            "request" : 15000,
+            "downloadFile" : 15000
+        }
+    },
+    "uniStatistics" : {
+        "enable" : false
+    },
+    "vueVersion" : "3"
+} 

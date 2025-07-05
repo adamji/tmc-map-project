@@ -1,0 +1,63 @@
+{
+  "name": "tmc-map-uniapp",
+  "version": "1.0.0",
+  "description": "头马俱乐部地图小程序",
+  "main": "main.js",
+  "scripts": {
+    "dev:h5": "uni",
+    "build:h5": "uni build",
+    "dev:mp-weixin": "cross-env UNI_PLATFORM=mp-weixin VUE_APP_API_BASE_URL=http://10.153.225.219:8080 uni build --watch --platform mp-weixin",
+    "dev:mp-weixin:build": "cross-env UNI_PLATFORM=mp-weixin VUE_APP_API_BASE_URL=http://10.153.225.219:8080 uni",
+    "build:mp-weixin": "cross-env UNI_PLATFORM=mp-weixin VUE_APP_API_BASE_URL=https://api.tmcmap.com uni build --platform mp-weixin",
+    "serve": "vite --host 0.0.0.0 --port 3000",
+    "lint": "eslint src --ext .js,.vue,.ts --fix",
+    "format": "prettier --write src/**/*.{js,ts,vue,json,css,scss}",
+    "type-check": "vue-tsc --noEmit",
+    "clean": "rimraf dist node_modules/.cache",
+    "analyze": "npm run build:mp-weixin && npx vite-bundle-analyzer dist/build/mp-weixin",
+    "check-size": "node check-size.js"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "3.0.0-4060620250520001",
+    "@dcloudio/uni-app-harmony": "3.0.0-4060620250520001",
+    "@dcloudio/uni-app-plus": "3.0.0-4060620250520001",
+    "@dcloudio/uni-components": "3.0.0-4060620250520001",
+    "@dcloudio/uni-h5": "3.0.0-4060620250520001",
+    "@dcloudio/uni-mp-alipay": "3.0.0-4060620250520001",
+    "@dcloudio/uni-mp-baidu": "3.0.0-4060620250520001",
+    "@dcloudio/uni-mp-harmony": "3.0.0-4060620250520001",
+    "@dcloudio/uni-mp-jd": "3.0.0-4060620250520001",
+    "@dcloudio/uni-mp-kuaishou": "3.0.0-4060620250520001",
+    "@dcloudio/uni-mp-lark": "3.0.0-4060620250520001",
+    "@dcloudio/uni-mp-qq": "3.0.0-4060620250520001",
+    "@dcloudio/uni-mp-toutiao": "3.0.0-4060620250520001",
+    "@dcloudio/uni-mp-weixin": "3.0.0-4060620250520001",
+    "@dcloudio/uni-mp-xhs": "3.0.0-4060620250520001",
+    "@dcloudio/uni-quickapp-webview": "3.0.0-4060620250520001",
+    "pinia": "^2.1.6",
+    "vue": "3.5.17",
+    "vue-i18n": "9.14.4"
+  },
+  "devDependencies": {
+    "@dcloudio/types": "^3.3.2",
+    "@dcloudio/uni-automator": "3.0.0-3081220230817001",
+    "@dcloudio/uni-cli-shared": "3.0.0-3081220230817001",
+    "@dcloudio/vite-plugin-uni": "3.0.0-3081220230817001",
+    "@vue/compiler-sfc": "^3.3.4",
+    "vite": "4.4.9",
+    "cross-env": "^7.0.3",
+    "@vue/eslint-config-standard": "^8.0.1",
+    "@vue/eslint-config-typescript": "^11.0.3",
+    "eslint": "^8.50.0",
+    "eslint-plugin-vue": "^9.17.0",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.2.2",
+    "vue-tsc": "^1.8.8",
+    "vite-bundle-analyzer": "^0.7.0"
+  },
+  "browserslist": [
+    "Android >= 4.4",
+    "ios >= 9"
+  ]
+}

@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # Spring Boot后端服务
+  backend:
+    build: 
+      context: ./tmc-map-backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:mysql://database:3306/tmc_map?useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=yourpassword
+    depends_on:
+      - database
+    networks:
+      - tmc-network
+    volumes:
+      - ./tmc-map-backend/logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # UniApp前端服务
+  frontend:
+    build: 
+      context: ./uniapp-tmc-map
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - tmc-network
+    depends_on:
+      - backend
+    volumes:
+      - ./uniapp-tmc-map/dist:/usr/share/nginx/html
+
+  # MySQL数据库
+  database:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: yourpassword
+      MYSQL_DATABASE: tmc_map
+      MYSQL_USER: tmcuser
+      MYSQL_PASSWORD: tmcpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./tmc-map-backend/src/main/resources/sql:/docker-entrypoint-initdb.d
+    networks:
+      - tmc-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis缓存（可选）
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - tmc-network
+    volumes:
+      - redis_data:/data
+
+  # Nginx反向代理（生产环境）
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - tmc-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  tmc-network:
+    driver: bridge 

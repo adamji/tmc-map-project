@@ -1,0 +1,57 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+target/
+.m2/
+.settings/
+.project
+.classpath
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+.npm
+.yarn/
+
+# UniApp
+unpackage/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# WeChat
+project.private.config.json
+
+# Build artifacts
+build/
+out/
+
+# Temporary files
+*.tmp
+*.temp
+~* 

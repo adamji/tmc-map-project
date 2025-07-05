@@ -1,0 +1,38 @@
+# 忽略不需要的文件和目录
+target/
+!target/*.jar
+
+# IDE文件
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# Git文件
+.git/
+.gitignore
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# 测试报告
+test-results/
+coverage/
+
+# Node modules (如果有前端资源)
+node_modules/ 

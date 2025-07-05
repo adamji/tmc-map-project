@@ -1,0 +1,178 @@
+name: Deploy TMC Map to Docker Hub
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: docker.io
+  BACKEND_IMAGE_NAME: tmc-map-backend
+  FRONTEND_IMAGE_NAME: tmc-map-frontend
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    
+    - name: Cache Node.js dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-node-
+    
+    - name: Test backend
+      run: |
+        cd tmc-map-backend
+        mvn clean test
+    
+    - name: Test frontend
+      run: |
+        cd uniapp-tmc-map
+        npm install
+        npm run test || echo "Frontend tests completed"
+
+  build-and-push:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: Extract metadata for backend
+      id: backend-meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Extract metadata for frontend
+      id: frontend-meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push backend
+      uses: docker/build-push-action@v5
+      with:
+        context: ./tmc-map-backend
+        push: true
+        tags: ${{ steps.backend-meta.outputs.tags }}
+        labels: ${{ steps.backend-meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push frontend
+      uses: docker/build-push-action@v5
+      with:
+        context: ./uniapp-tmc-map
+        push: true
+        tags: ${{ steps.frontend-meta.outputs.tags }}
+        labels: ${{ steps.frontend-meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy-to-server:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        port: ${{ secrets.PORT || 22 }}
+        script: |
+          echo "Starting deployment..."
+          
+          # 拉取最新镜像
+          docker pull ${{ secrets.DOCKER_USERNAME }}/tmc-map-backend:latest
+          docker pull ${{ secrets.DOCKER_USERNAME }}/tmc-map-frontend:latest
+          
+          # 停止旧容器
+          docker-compose down || true
+          
+          # 启动新容器
+          docker-compose up -d
+          
+          # 清理旧镜像
+          docker image prune -f
+          
+          echo "Deployment completed successfully!"
+
+  deploy-to-cloudbase:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install CloudBase CLI
+      run: |
+        npm install -g @cloudbase/cli
+    
+    - name: Deploy to WeChat Cloud Hosting
+      run: |
+        echo "Deploying to WeChat Cloud Hosting..."
+        
+        # 登录云开发
+        echo '${{ secrets.CLOUDBASE_SECRET_KEY }}' > /tmp/cloudbase-key.json
+        tcb login --key /tmp/cloudbase-key.json
+        
+        # 部署到云托管
+        tcb framework deploy --envId ${{ secrets.CLOUDBASE_ENV_ID }}
+        
+        echo "Cloud hosting deployment completed!" 

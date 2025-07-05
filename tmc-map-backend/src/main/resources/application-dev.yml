@@ -1,0 +1,80 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: tmc-map-backend
+  
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:tmc_map;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    username: sa
+    password: 
+    initialization-mode: always
+    
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+      data-locations: classpath:data-h2.sql
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# SpringDoc配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# 日志配置
+logging:
+  level:
+    com.tmcmap: debug
+    org.springframework.web: info
+    root: info
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 自定义配置
+tmc:
+  map:
+    # 地图API配置（开发环境使用模拟数据）
+    api:
+      tencent:
+        key: dev-test-key
+        base-url: https://apis.map.qq.com
+      amap:
+        key: dev-test-key
+        base-url: https://restapi.amap.com
+    # 缓存配置
+    cache:
+      club-list-ttl: 60 # 开发环境缓存时间短一些
+      navigation-ttl: 30 

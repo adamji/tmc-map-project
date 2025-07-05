@@ -1,0 +1,263 @@
+{
+  "info": {
+    "name": "头马俱乐部地图后端API",
+    "description": "头马俱乐部地图应用后端API接口测试集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "俱乐部管理",
+      "item": [
+        {
+          "name": "获取俱乐部列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clubs",
+              "host": ["{{baseUrl}}"],
+              "path": ["clubs"]
+            },
+            "description": "获取所有俱乐部列表"
+          }
+        },
+        {
+          "name": "根据城市筛选俱乐部",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clubs?city=北京",
+              "host": ["{{baseUrl}}"],
+              "path": ["clubs"],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "北京"
+                }
+              ]
+            },
+            "description": "根据城市筛选俱乐部"
+          }
+        },
+        {
+          "name": "根据星期几筛选俱乐部",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clubs?weekday=6",
+              "host": ["{{baseUrl}}"],
+              "path": ["clubs"],
+              "query": [
+                {
+                  "key": "weekday",
+                  "value": "6"
+                }
+              ]
+            },
+            "description": "根据星期几筛选俱乐部"
+          }
+        },
+        {
+          "name": "获取俱乐部详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clubs/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["clubs", "1"]
+            },
+            "description": "根据ID获取俱乐部详情"
+          }
+        },
+        {
+          "name": "获取附近俱乐部",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clubs/nearby?lat=32.0584&lng=118.7964&radius=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["clubs", "nearby"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "32.0584",
+                  "description": "南京新街口纬度"
+                },
+                {
+                  "key": "lng",
+                  "value": "118.7964",
+                  "description": "南京新街口经度"
+                },
+                {
+                  "key": "radius",
+                  "value": "10",
+                  "description": "搜索半径(km)"
+                }
+              ]
+            },
+            "description": "根据坐标获取附近的俱乐部"
+          }
+        }
+      ]
+    },
+    {
+      "name": "导航服务",
+      "item": [
+        {
+          "name": "计算两点距离",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/navigation/distance?fromLat=32.0584&fromLng=118.7964&toLat=32.0751&toLng=118.7879",
+              "host": ["{{baseUrl}}"],
+              "path": ["navigation", "distance"],
+              "query": [
+                {
+                  "key": "fromLat",
+                  "value": "32.0584"
+                },
+                {
+                  "key": "fromLng",
+                  "value": "118.7964"
+                },
+                {
+                  "key": "toLat",
+                  "value": "32.0751"
+                },
+                {
+                  "key": "toLng",
+                  "value": "118.7879"
+                }
+              ]
+            },
+            "description": "计算两点间的直线距离"
+          }
+        },
+        {
+          "name": "计算导航路线",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fromLat\": 32.0584,\n    \"fromLng\": 118.7964,\n    \"toLat\": 32.0751,\n    \"toLng\": 118.7879,\n    \"mode\": \"driving\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/navigation/calculate",
+              "host": ["{{baseUrl}}"],
+              "path": ["navigation", "calculate"]
+            },
+            "description": "根据起终点坐标计算导航路线信息"
+          }
+        }
+      ]
+    },
+    {
+      "name": "错误处理测试",
+      "item": [
+        {
+          "name": "获取不存在的俱乐部",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clubs/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["clubs", "999999"]
+            },
+            "description": "测试获取不存在的俱乐部，验证错误处理"
+          }
+        },
+        {
+          "name": "参数错误测试",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/navigation/distance?fromLat=invalid&fromLng=116.4074&toLat=39.9122&toLng=116.4241",
+              "host": ["{{baseUrl}}"],
+              "path": ["navigation", "distance"],
+              "query": [
+                {
+                  "key": "fromLat",
+                  "value": "invalid",
+                  "description": "无效的纬度参数"
+                },
+                {
+                  "key": "fromLng",
+                  "value": "116.4074"
+                },
+                {
+                  "key": "toLat",
+                  "value": "39.9122"
+                },
+                {
+                  "key": "toLng",
+                  "value": "116.4241"
+                }
+              ]
+            },
+            "description": "测试参数错误情况下的错误处理"
+          }
+        }
+      ]
+    }
+  ]
+} 
