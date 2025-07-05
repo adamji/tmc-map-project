@@ -12,7 +12,7 @@ if "%~2"=="" (
 
 set GITHUB_USERNAME=%1
 set REPO_NAME=%2
-set GITHUB_REPO=https://github.com/%GITHUB_USERNAME%/%REPO_NAME%.git
+set GITHUB_REPO=https://github.com:%GITHUB_USERNAME%/%REPO_NAME%.git
 
 echo [INFO] === TMC Map GitHub部署脚本 ===
 echo [INFO] GitHub用户名: %GITHUB_USERNAME%
