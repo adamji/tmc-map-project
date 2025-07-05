@@ -1,26 +1,23 @@
-import { request } from '@/utils/request.js'
+import { request } from '@/utils/cloudRequest.js'
 
-// 根据运行环境自动选择API地址
-const getApiBase = () => {
-  // 如果有环境变量配置，优先使用
-  if (import.meta.env.VUE_APP_API_BASE_URL) {
-    return import.meta.env.VUE_APP_API_BASE_URL
+// 云托管环境下使用相对路径，传统HTTP环境下使用完整URL
+const getApiPath = (path) => {
+  // 在微信小程序云托管环境中，直接使用相对路径
+  if (typeof wx !== 'undefined' && wx.cloud) {
+    return path
   }
   
-  // 开发环境：根据是否是远程调试选择不同的地址
+  // 开发环境或其他环境的降级方案
   if (process.env.NODE_ENV === 'development') {
-    // 如果需要手机调试，可以手动修改这个IP为你电脑的实际IP
-    const COMPUTER_IP = '10.153.225.219' // 根据需要修改这个IP
-    const USE_COMPUTER_IP = false // 手机调试时设置为true
-    
-    return USE_COMPUTER_IP ? `http://${COMPUTER_IP}:8080` : 'http://localhost:8080'
+    const COMPUTER_IP = '10.153.225.219'
+    const USE_COMPUTER_IP = false
+    const baseUrl = USE_COMPUTER_IP ? `http://${COMPUTER_IP}:8080` : 'http://localhost:8080'
+    return `${baseUrl}${path}`
   }
   
-  // 生产环境
-  return 'https://api.tmcmap.com'
+  // 生产环境降级方案
+  return `https://springboot-gub6-171302-5-1367566291.sh.run.tcloudbase.com${path}`
 }
-
-const API_BASE = getApiBase()
 
 // 开发调试开关
 const USE_MOCK_DATA = false // 如果API无法访问，可以设置为true使用模拟数据
@@ -64,7 +61,7 @@ export const clubApi = {
     }
     
     return request({
-      url: `${API_BASE}/api/clubs`,
+      url: getApiPath('/api/clubs'),
       method: 'GET',
       data: params
     })
@@ -76,7 +73,7 @@ export const clubApi = {
    */
   getClubDetail(id) {
     return request({
-      url: `${API_BASE}/api/clubs/${id}`,
+      url: getApiPath(`/api/clubs/${id}`),
       method: 'GET'
     })
   },
@@ -92,7 +89,7 @@ export const clubApi = {
    */
   calculateNavigation(params) {
     return request({
-      url: `${API_BASE}/api/navigation/calculate`,
+      url: getApiPath('/api/navigation/calculate'),
       method: 'POST',
       data: params
     })

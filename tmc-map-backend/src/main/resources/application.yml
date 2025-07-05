@@ -11,9 +11,9 @@ spring:
   application:
     name: tmc-map-backend
   
-  # 默认使用dev配置
+  # 默认使用prod配置，本地开发时通过环境变量或启动参数覆盖
   profiles:
-    active: dev
+    active: prod
   
   # HTTP消息转换器配置
   http:
