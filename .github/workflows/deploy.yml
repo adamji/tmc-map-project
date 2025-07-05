@@ -1,3 +1,6 @@
+# 禁用此workflow
+if: false
+
 name: Deploy TMC Map to Docker Hub
 
 on:
