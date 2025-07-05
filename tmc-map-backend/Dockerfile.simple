@@ -1,0 +1,37 @@
+# ---------- 构建阶段 ----------
+FROM maven:3.8.4-openjdk-17 AS builder
+
+WORKDIR /app
+
+# 复制所有文件
+COPY pom.xml .
+COPY src ./src
+
+# 下载依赖并打包（跳过测试）
+RUN mvn clean package -DskipTests
+
+# ---------- 运行阶段 ----------
+# 使用官方OpenJDK镜像
+FROM openjdk:17-jdk-slim
+
+# 安装curl（在切换用户前）
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 复制jar包
+COPY --from=builder /app/target/*.jar app.jar
+
+# 创建日志目录
+RUN mkdir -p /app/logs
+
+EXPOSE 8080
+
+# 简化的健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+  CMD curl -f http://localhost:8080/api/health || exit 1
+
+# JVM参数优化
+ENV JAVA_OPTS="-Xms256m -Xmx1024m -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom"
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"] 

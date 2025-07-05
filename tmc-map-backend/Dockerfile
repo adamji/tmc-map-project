@@ -17,6 +17,9 @@ FROM eclipse-temurin:17-jdk-jammy
 # 创建非root用户，提升安全性
 RUN groupadd -r spring && useradd -r -g spring spring
 
+# 安装curl用于健康检查
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # 复制jar包
@@ -25,12 +28,10 @@ COPY --from=builder /app/target/*.jar app.jar
 # 创建日志目录并赋权
 RUN mkdir -p /app/logs && chown -R spring:spring /app
 
+# 切换到spring用户
 USER spring
 
 EXPOSE 8080
-
-# 安装curl用于健康检查
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 # 健康检查配置 - 多种检查方式
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
