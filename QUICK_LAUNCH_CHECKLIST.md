@@ -2,7 +2,14 @@
 
 ## 🔥 立即需要完成的任务
 
-### 1. 服务器准备 (最高优先级)
+### 1. 微信云托管环境配置 (最高优先级)
+- [ ] **开通微信云托管服务** → https://cloud.weixin.qq.com/
+- [ ] **获取环境ID** 并更新到 `cloudbaserc.json`
+- [ ] **创建云托管自带MySQL数据库** 并更新 `application-prod.yml`
+- [ ] **安装云托管CLI** 并登录: `npm install -g @cloudbase/cli && tcb login`
+- [ ] **部署后端服务**: `tcb framework deploy`
+
+### 2. 传统服务器部署 (备选方案)
 - [ ] **申请云服务器** (推荐阿里云/腾讯云)
 - [ ] **购买域名** api.tmcmap.com 并配置DNS解析
 - [ ] **申请SSL证书** (Let's Encrypt 或云服务商提供)
@@ -13,10 +20,10 @@
 - [ ] **完成账号认证** (需要营业执照或个人认证)
 - [ ] **获取AppID** 并更新到 `manifest.json`
 
-### 3. 地图API密钥申请 (高优先级)
-- [ ] **申请腾讯地图API密钥** → https://lbs.qq.com/
-- [ ] **配置密钥到** `application-prod.yml`
-- [ ] **测试API密钥** 是否可用
+### 3. 地图功能配置 (已完成)
+- [x] **使用微信小程序原生地图组件** - 无需API密钥
+- [x] **位置服务使用微信原生API** - 无需额外配置
+- [x] **导航功能使用本地地图APP** - 无需服务器端密钥
 
 ## 📋 配置更新任务
 
@@ -37,7 +44,22 @@
 
 ## 🎯 部署流程
 
-### 后端部署
+### 微信云托管部署 (推荐)
+```bash
+# 1. 安装云托管CLI
+npm install -g @cloudbase/cli
+
+# 2. 登录云托管
+tcb login
+
+# 3. 部署服务
+tcb framework deploy
+
+# 4. 查看部署状态
+tcb framework list
+```
+
+### 传统服务器部署 (备选)
 ```bash
 # 1. 数据库初始化
 mysql -u root -p < tmc-map-backend/src/main/resources/sql/production-init.sql
@@ -65,9 +87,9 @@ npm run build:mp-weixin
 ## ⚡ 关键验证点
 
 ### 后端验证
-- [ ] `curl https://api.tmcmap.com/api/clubs` 返回俱乐部列表
+- [ ] `curl https://你的云托管域名/api/clubs` 返回俱乐部列表
 - [ ] 数据库连接正常
-- [ ] 日志文件正常生成
+- [ ] 云托管控制台显示服务运行正常
 
 ### 前端验证
 - [ ] 微信开发者工具中小程序正常预览

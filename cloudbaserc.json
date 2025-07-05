@@ -1,5 +1,5 @@
 {
-  "envId": "你的环境ID",
+  "envId": "prod-4glzuzf324169217",
   "version": "2.0",
   "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
   "functionRoot": "./functions",

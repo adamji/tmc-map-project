@@ -9,13 +9,19 @@ spring:
   
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://your-mysql-host:3306/tmc_map?useSSL=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8
-    username: your-db-username
-    password: your-db-password
+    url: jdbc:mysql://10.22.100.35:3306/tmc_map?useSSL=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: root
+    password: Zc2fQCTX
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
     
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update  # 自动创建表结构
     show-sql: false
     
   jackson:
@@ -60,14 +66,6 @@ logging:
 # 自定义配置
 tmc:
   map:
-    # 地图API配置（生产环境使用真实密钥）
-    api:
-      tencent:
-        key: your-production-tencent-map-api-key
-        base-url: https://apis.map.qq.com
-      amap:
-        key: your-production-amap-api-key
-        base-url: https://restapi.amap.com
     # 缓存配置
     cache:
       club-list-ttl: 3600 # 俱乐部列表缓存时间(秒)
