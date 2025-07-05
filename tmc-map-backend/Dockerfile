@@ -29,12 +29,16 @@ USER spring
 
 EXPOSE 8080
 
-# 健康检查（可选，需curl）
-# RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-# HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-#   CMD curl -f http://localhost:8080/actuator/health || exit 1
+# 安装curl用于健康检查
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
-# JVM参数可通过环境变量覆盖
-ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication"
+# 健康检查配置 - 多种检查方式
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+  CMD curl -f http://localhost:8080/api/actuator/health || \
+      curl -f http://localhost:8080/api/health || \
+      curl -f http://localhost:8080/api/ || exit 1
+
+# JVM参数优化 - 加快启动速度，减少内存占用
+ENV JAVA_OPTS="-Xms256m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication -Djava.security.egd=file:/dev/./urandom -XX:TieredStopAtLevel=1 -XX:+UseContainerSupport"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"] 
