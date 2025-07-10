@@ -18,7 +18,7 @@ export const CLOUD_CONFIG = {
   
   // 开发环境配置
   development: {
-    computerIP: '10.153.225.219',
+    computerIP: '10.153.227.79',
     useComputerIP: false, // 手机调试时设置为true
     port: 8080
   }

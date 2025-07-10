@@ -13,6 +13,7 @@
       enable-scroll
       enable-rotate
       @markertap="onMarkerTap"
+      @labeltap="onMarkerTap"
       @tap="onMapTap"
     ></map>
     
@@ -72,9 +73,7 @@ const markers = computed(() => {
   
   const markersData = clubList.map((club, index) => {
     // 简化俱乐部名字显示
-    const shortName = club.name.replace('国际演讲俱乐部', 'TMC').replace('演讲俱乐部', 'TMC')
-    
-    return {
+        return {
       id: club.id,
       longitude: club.lng,
       latitude: club.lat,
@@ -82,7 +81,7 @@ const markers = computed(() => {
       height: 34,
       iconPath: '', // 使用默认标记图标
       label: {
-        content: shortName,
+        content: club.name,
         color: '#ffffff',
         fontSize: 11,
         fontWeight: 'bold',
@@ -121,7 +120,9 @@ const emit = defineEmits(['markerTap'])
 const isMarkerTapped = ref(false)
 
 const onMarkerTap = (e) => {
-  const markerId = e.detail.markerId
+  
+  // 兼容处理 markertap 和 labeltap 事件
+  const markerId = e.detail.markerId || e.detail.labelId
   const club = store.clubList.find(c => c.id === markerId)
   if (club) {
     isMarkerTapped.value = true
@@ -132,6 +133,8 @@ const onMarkerTap = (e) => {
     setTimeout(() => {
       isMarkerTapped.value = false
     }, 100)
+  } else {
+    console.warn('未找到对应俱乐部，markerId:', markerId)
   }
 }
 
@@ -253,12 +256,7 @@ const updateMapToLocation = (location) => {
 }
 
 const showDatePicker = () => {
-  // 临时用于测试地图移动功能
-  if (filterText.value === '请选择日期') {
-    testMoveToClub()
-  } else {
-    showPicker.value = true
-  }
+  showPicker.value = true
 }
 
 const onDateSelect = (weekday) => {

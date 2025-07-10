@@ -58,7 +58,7 @@
 					method: obj.method || 'GET',
 					data: obj.data,
 					header: {
-						'X-WX-SERVICE': 'springboot', // 你的服务名称
+						'X-WX-SERVICE': 'springboot-gub6', // 你的服务名称
 						'Content-Type': 'application/json',
 						...obj.header
 					}

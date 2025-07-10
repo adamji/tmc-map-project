@@ -128,6 +128,7 @@ export const chooseLocation = () => {
  * @param {number} params.longitude - 目标经度
  * @param {string} params.name - 目标名称
  * @param {string} params.address - 目标地址
+ * @param {boolean} params.direct - 是否直接跳转系统地图（可选）
  */
 export const openMapNavigation = (params) => {
   // 验证参数
@@ -167,82 +168,89 @@ export const openMapNavigation = (params) => {
     latitude,
     longitude,
     name: params.name,
-    address: params.address
+    address: params.address,
+    direct: params.direct
   })
 
-  // 检查环境，小程序中直接使用备用方案
-  // #ifdef MP-WEIXIN
-  console.log('小程序环境，直接使用备用导航方案')
-  fallbackNavigation(params, latitude, longitude)
-  // #endif
-  
-  // #ifndef MP-WEIXIN
-  // 方案1: 尝试使用 uni.openLocation (推荐)
-  uni.openLocation({
-    latitude: latitude,
-    longitude: longitude,
-    name: params.name || '目标位置',
-    address: params.address || '',
-    scale: 18,
-    success: () => {
-      console.log('打开地图导航成功')
-    },
-    fail: (error) => {
-      console.error('uni.openLocation 失败:', error)
-      // 方案2: 备用导航方案
-      fallbackNavigation(params, latitude, longitude)
-    }
-  })
-  // #endif
+  // 如果设置了直接跳转，直接使用系统地图
+  if (params.direct) {
+    openSystemMap(latitude, longitude, params)
+    return
+  }
+
+  // 否则显示选择菜单
+  openSystemMap(latitude, longitude, params)
+
+  // navigation(params, latitude, longitude)
 }
 
 /**
- * 备用导航方案
+ * 直接打开系统地图导航（快捷方式）
+ * @param {Object} params - 导航参数
  */
-function fallbackNavigation(params, latitude, longitude) {
-  console.log('使用备用导航方案')
+export const openSystemMapDirect = (params) => {
+  return openMapNavigation({ ...params, direct: true })
+}
+
+/**
+ * 智能导航 - 询问用户选择
+ * @param {Object} params - 导航参数
+ */
+export const openMapWithConfirm = (params) => {
+  // 验证参数
+  if (!params || !params.latitude || !params.longitude) {
+    console.error('导航参数无效:', params)
+    uni.showToast({
+      title: '导航信息不完整',
+      icon: 'none'
+    })
+    return
+  }
+
+  const latitude = Number(params.latitude)
+  const longitude = Number(params.longitude)
   
-  // #ifdef MP-WEIXIN
-  // 小程序环境下的导航选项
-  uni.showActionSheet({
-    itemList: ['复制地址信息', '复制坐标位置', '查看位置详情'],
+  if (isNaN(latitude) || isNaN(longitude)) {
+    console.error('坐标格式错误:', params)
+    uni.showToast({
+      title: '坐标信息错误',
+      icon: 'none'
+    })
+    return
+  }
+
+  // 询问用户是否要打开地图导航
+  uni.showModal({
+    title: '地图导航',
+    content: `是否要导航到：\n${params.name}\n${params.address}`,
+    showCancel: true,
+    cancelText: '取消',
+    confirmText: '导航',
     success: (res) => {
-      const index = res.tapIndex
-      
-      switch (index) {
-        case 0:
-          // 复制完整地址信息
-          copyAddressToClipboard(params)
-          break
-        case 1:
-          // 复制坐标
-          copyCoordinates(latitude, longitude, params.name)
-          break
-        case 2:
-          // 显示位置详情
-          showLocationDetails(params, latitude, longitude)
-          break
+      if (res.confirm) {
+        // 用户确认，直接打开系统地图
+        openSystemMap(latitude, longitude, params)
       }
-    },
-    fail: (error) => {
-      console.error('显示导航选项失败:', error)
-      // 最后的备用方案：复制地址
-      copyAddressToClipboard(params)
     }
   })
-  // #endif
+}
+
+/**
+ * 导航方案
+ */
+function navigation(params, latitude, longitude) {
+  console.log('使用导航方案')
   
-  // #ifndef MP-WEIXIN
-  // 非小程序环境的导航选项
+  // 优化导航选项：增加系统地图选项，重新排序
   uni.showActionSheet({
-    itemList: ['复制地址', '使用腾讯地图', '使用百度地图'],
+    itemList: ['打开系统地图'],
     success: (res) => {
       const index = res.tapIndex
       
       switch (index) {
         case 0:
-          // 复制地址到剪贴板
-          copyAddressToClipboard(params)
+          // 打开系统地图
+          openSystemMap(latitude, longitude, params)
           break
         case 1:
           // 使用腾讯地图
@@ -252,15 +260,58 @@ function fallbackNavigation(params, latitude, longitude) {
           // 使用百度地图
           openWithBaiduMap(latitude, longitude, params.name)
           break
+        case 3:
+          // 复制地址到剪贴板
+          copyAddressToClipboard(params)
+          break
       }
     },
     fail: (error) => {
       console.error('显示导航选项失败:', error)
-      // 最后的备用方案：复制地址
-      copyAddressToClipboard(params)
+      // 失败时直接尝试打开系统地图
+      openSystemMap(latitude, longitude, params)
     }
   })
-  // #endif
+}
+
+/**
+ * 打开系统默认地图
+ */
+function openSystemMap(latitude, longitude, params) {
+  console.log('尝试打开系统地图')
+  
+  // 使用uni.openLocation打开系统地图
+  uni.openLocation({
+    latitude: latitude,
+    longitude: longitude,
+    name: params.name || '目标位置',
+    address: params.address || '',
+    scale: 18,
+    success: () => {
+      console.log('打开系统地图成功')
+    },
+    fail: (error) => {
+      console.error('打开系统地图失败:', error)
+      
+      // 系统地图失败时，提供备用方案
+      uni.showModal({
+        title: '地图导航',
+        content: `无法打开系统地图\n\n${params.name}\n地址: ${params.address}\n坐标: ${latitude}, ${longitude}\n\n请选择其他方式`,
+        showCancel: true,
+        cancelText: '复制地址',
+        confirmText: '重试',
+        success: (res) => {
+          if (res.confirm) {
+            // 重试系统地图
+            openSystemMap(latitude, longitude, params)
+          } else if (res.cancel) {
+            // 复制地址
+            copyAddressToClipboard(params)
+          }
+        }
+      })
+    }
+  })
 }
 
 /**

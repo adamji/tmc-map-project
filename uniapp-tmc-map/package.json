@@ -6,10 +6,9 @@
   "scripts": {
     "dev:h5": "uni",
     "build:h5": "uni build",
-    "dev:mp-weixin": "cross-env UNI_PLATFORM=mp-weixin VUE_APP_API_BASE_URL=http://10.153.225.219:8080 uni build --watch --platform mp-weixin",
-    "dev:mp-weixin:build": "cross-env UNI_PLATFORM=mp-weixin VUE_APP_API_BASE_URL=http://10.153.225.219:8080 uni",
-    "build:mp-weixin": "cross-env UNI_PLATFORM=mp-weixin uni build --platform mp-weixin",
-    "build:mp-weixin:http": "cross-env UNI_PLATFORM=mp-weixin VUE_APP_API_BASE_URL=https://springboot-gub6-171302-5-1367566291.sh.run.tcloudbase.com uni build --platform mp-weixin",
+    "dev:mp-weixin": "cross-env UNI_PLATFORM=mp-weixin VUE_APP_API_BASE_URL=http://10.153.227.79:8080 uni build --watch --platform mp-weixin",
+    "build:mp-weixin": "cross-env UNI_PLATFORM=mp-weixin VUE_APP_API_BASE_URL=https://springboot-gub6-171302-5-1367566291.sh.run.tcloudbase.com uni build --platform mp-weixin",
+    "build:mp-weixin-dev": "cross-env UNI_PLATFORM=mp-weixin VUE_APP_API_BASE_URL=http://10.153.227.79:8080 uni build --platform mp-weixin",
     "serve": "vite --host 0.0.0.0 --port 3000",
     "lint": "eslint src --ext .js,.vue,.ts --fix",
     "format": "prettier --write src/**/*.{js,ts,vue,json,css,scss}",
