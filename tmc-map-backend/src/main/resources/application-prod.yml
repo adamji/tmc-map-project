@@ -26,10 +26,12 @@ spring:
       hibernate:
         format_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
-  # 生产环境SQL初始化配置 - 通过环境变量控制
+  # 生产环境SQL初始化配置 - 启用自动迁移
   sql:
     init:
-      mode: never
+      mode: always
+      data-locations: classpath:sql/prod-init.sql
+      continue-on-error: false
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8

@@ -1,5 +1,6 @@
--- 开发环境初始化脚本 (详细字段版本)
+-- 开发环境初始化脚本 (支持增量迁移版本)
 -- 兼容H2数据库，与Entity类字段完全匹配
+-- 注意：此脚本仅在首次部署时自动执行，后续通过增量迁移更新
 
 -- 创建俱乐部表 (开发环境)
 DROP TABLE IF EXISTS club;
@@ -31,21 +32,49 @@ CREATE INDEX idx_status ON club(status, deleted);
 CREATE INDEX idx_meeting_time ON club(meeting_time);
 CREATE INDEX idx_city_status ON club(city, status, deleted);
 
--- 插入开发测试数据
+-- 创建导航记录表（开发环境）
+CREATE TABLE IF NOT EXISTS navigation_log (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '导航记录ID',
+    club_id BIGINT NOT NULL COMMENT '俱乐部ID',
+    from_latitude DECIMAL(10,7) NOT NULL COMMENT '起点纬度',
+    from_longitude DECIMAL(10,7) NOT NULL COMMENT '起点经度',
+    to_latitude DECIMAL(10,7) NOT NULL COMMENT '终点纬度',
+    to_longitude DECIMAL(10,7) NOT NULL COMMENT '终点经度',
+    mode VARCHAR(20) NOT NULL COMMENT '出行方式',
+    distance INT COMMENT '距离(米)',
+    duration INT COMMENT '时长(秒)',
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
+);
+
+CREATE INDEX idx_nav_club_id ON navigation_log(club_id);
+CREATE INDEX idx_nav_create_time ON navigation_log(create_time);
+
+-- 创建版本管理表 (与DatabaseMigrationService兼容，H2版本)
+CREATE TABLE IF NOT EXISTS db_version (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    version VARCHAR(20) NOT NULL UNIQUE,
+    description VARCHAR(200),
+    sql_file VARCHAR(100) NOT NULL,
+    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    execution_time INT,
+    status VARCHAR(10) DEFAULT 'SUCCESS',
+    error_message TEXT
+);
+
+CREATE INDEX idx_version ON db_version (version);
+CREATE INDEX idx_executed_at ON db_version (executed_at);
+
+-- 插入开发基础数据（仅首次部署时执行，使用INSERT IGNORE避免重复）
 INSERT INTO club (name, short_name, address, latitude, longitude, city, meeting_time, meeting_format, contact, contact_phone, contact_wechat, features, remarks) VALUES
 ('深圳四合院国际演讲俱乐部', '四合院TMC', '深圳市福田区莲花西第一世界广场大厦18A四合院', 22.5431, 114.0579, '深圳', '周一 19:30-21:30', '双语', 'Sherry YANG', '13603014039', 'sherry_wechat', '位于福田中心区，交通便利，双语环境', '欢迎英语爱好者加入'),
-('深圳福田国际演讲俱乐部', '福田TMC', '深圳市福田区深南大道6009号NEO大厦A座12楼', 22.5286, 114.0564, '深圳', '周二 19:30-21:30', '双语', 'Jason LI', '13800138001', 'jason_li_wechat', '高端商务环境，国际化氛围', '面向职场精英'),
-('深圳南山国际演讲俱乐部', '南山TMC', '深圳市南山区科技园南区虚拟大学园A603', 22.5333, 114.0167, '深圳', '周三 19:30-21:30', '中文', 'Linda CHEN', '13900139001', 'linda_chen_wechat', '科技园区，创新氛围浓厚', '欢迎科技从业者'),
+('江宁双语SH俱乐部', 'SH', '南京市江宁经济技术开发区双龙大道1539号21世纪太阳城小卢可童书馆', 31.9558, 118.8420, '南京', '周日 18:30-20:30', '双语', '清思', '18351444832', 'qingsi_wechat', '外企留学，脱口秀，学习小组', '提高英语提高表达提高领导力首选'),
+('广州天河国际演讲俱乐部', '天河TMC', '广州市天河区天河路208号粤海天河城大厦4001', 23.1350, 113.3261, '广州', '周六 14:30-16:30', '双语', 'Michael HUANG', '13500135001', 'michael_huang_wechat', '天河CBD核心地段', '周末聚会，轻松氛围'),
+('上海浦东国际演讲俱乐部', '浦东TMC', '上海市浦东新区陆家嘴环路1000号恒生银行大厦3楼', 31.2351, 121.5035, '上海', '周一 19:00-21:00', '双语', 'Kevin ZHANG', '13300133001', 'kevin_zhang_wechat', '陆家嘴金融区', '国际金融精英聚集地'),
+('北京朝阳国际演讲俱乐部', '朝阳TMC', '北京市朝阳区建国门外大街1号国贸三期B座55层', 39.9097, 116.4589, '北京', '周二 19:00-21:00', '双语', 'Tony WANG', '13100131001', 'tony_wang_wechat', 'CBD核心区域', '首都商务精英俱乐部'),
+-- 开发环境测试数据
 ('测试俱乐部1', 'TEST1', '测试地址1', 22.5400, 114.0600, '深圳', '周四 19:30-21:30', '中文', '测试联系人1', '13900000001', 'test_wechat1', '测试特色1', '测试备注1'),
 ('测试俱乐部2', 'TEST2', '测试地址2', 22.5500, 114.0700, '深圳', '周五 19:30-21:30', '双语', '测试联系人2', '13900000002', 'test_wechat2', '测试特色2', '测试备注2');
 
--- 创建版本表 (用于数据库迁移)
-CREATE TABLE IF NOT EXISTS db_version (
-    version VARCHAR(50) PRIMARY KEY COMMENT '版本号',
-    description VARCHAR(200) COMMENT '版本描述',
-    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '执行时间'
-);
-
--- 记录初始版本
-INSERT INTO db_version (version, description) VALUES 
-('DEV_INIT', 'Development environment initialization'); 
+-- 记录初始版本（使用INSERT IGNORE避免重复）
+INSERT INTO db_version (version, description, sql_file) VALUES 
+('1.0', 'Development environment initialization', 'dev-init.sql'); 

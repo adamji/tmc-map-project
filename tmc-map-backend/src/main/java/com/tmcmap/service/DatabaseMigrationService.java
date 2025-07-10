@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 /**
  * 数据库迁移服务
  * 用于自动执行增量SQL更新
+ * 支持MySQL和H2数据库
  */
 @Service
 public class DatabaseMigrationService {
@@ -27,8 +28,8 @@ public class DatabaseMigrationService {
     @Autowired
     private org.springframework.core.io.support.PathMatchingResourcePatternResolver resourceResolver;
 
-    // 版本号正则表达式
-    private static final Pattern VERSION_PATTERN = Pattern.compile("V(\\d+\\.\\d+)_(.+)\\.sql");
+    // 版本号正则表达式 - 支持H2特殊版本
+    private static final Pattern VERSION_PATTERN = Pattern.compile("V(\\d+\\.\\d+)_(.+?)(?:\\.h2)?\\.sql");
 
     /**
      * 应用启动时自动执行数据库迁移
@@ -36,7 +37,8 @@ public class DatabaseMigrationService {
     @PostConstruct
     public void migrateOnStartup() {
         try {
-            System.out.println("🚀 开始数据库迁移检查...");
+            String dbType = getDatabaseType();
+            System.out.println("🚀 开始数据库迁移检查... (数据库类型: " + dbType + ")");
             executePendingMigrations();
             System.out.println("✅ 数据库迁移完成");
         } catch (Exception e) {
@@ -90,9 +92,7 @@ public class DatabaseMigrationService {
                     executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     execution_time INT,
                     status VARCHAR(10) DEFAULT 'SUCCESS',
-                    error_message TEXT,
-                    INDEX idx_version (version),
-                    INDEX idx_executed_at (executed_at)
+                    error_message TEXT
                 )
                 """;
         } else {
@@ -114,6 +114,16 @@ public class DatabaseMigrationService {
         }
         
         jdbcTemplate.execute(createVersionTable);
+        
+        // 为H2数据库单独创建索引
+        if ("H2".equals(dbType)) {
+            try {
+                jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_version ON db_version (version)");
+                jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_executed_at ON db_version (executed_at)");
+            } catch (Exception e) {
+                // 索引可能已存在，忽略错误
+            }
+        }
     }
     
     /**
@@ -151,10 +161,11 @@ public class DatabaseMigrationService {
     }
 
     /**
-     * 获取所有迁移文件
+     * 获取所有迁移文件 - 根据数据库类型选择合适的文件
      */
     private List<MigrationFile> getMigrationFiles() throws IOException {
         List<MigrationFile> migrationFiles = new ArrayList<>();
+        String dbType = getDatabaseType();
         
         // 获取 sql 目录下的所有文件
         Resource[] resources = resourceResolver.getResources("classpath*:sql/V*.sql");
@@ -162,18 +173,35 @@ public class DatabaseMigrationService {
         for (Resource resource : resources) {
             String filename = resource.getFilename();
             if (filename != null && filename.startsWith("V") && filename.endsWith(".sql")) {
-                Matcher matcher = VERSION_PATTERN.matcher(filename);
-                if (matcher.matches()) {
-                    String version = matcher.group(1);
-                    String description = matcher.group(2).replace("_", " ");
-                    
-                    // 读取SQL内容
-                    String sqlContent = StreamUtils.copyToString(
-                        resource.getInputStream(), 
-                        StandardCharsets.UTF_8
-                    );
-                    
-                    migrationFiles.add(new MigrationFile(version, description, filename, sqlContent));
+                
+                // 根据数据库类型选择合适的文件
+                boolean shouldInclude = false;
+                if ("H2".equals(dbType)) {
+                    // H2优先使用.h2.sql文件，如果不存在则使用.sql文件
+                    if (filename.contains(".h2.sql")) {
+                        shouldInclude = true;
+                    } else if (!filename.contains(".h2.sql") && !hasH2Version(filename, resources)) {
+                        shouldInclude = true;
+                    }
+                } else {
+                    // MySQL只使用.sql文件（不包含.h2.sql）
+                    shouldInclude = !filename.contains(".h2.sql");
+                }
+                
+                if (shouldInclude) {
+                    Matcher matcher = VERSION_PATTERN.matcher(filename);
+                    if (matcher.matches()) {
+                        String version = matcher.group(1);
+                        String description = matcher.group(2).replace("_", " ");
+                        
+                        // 读取SQL内容
+                        String sqlContent = StreamUtils.copyToString(
+                            resource.getInputStream(), 
+                            StandardCharsets.UTF_8
+                        );
+                        
+                        migrationFiles.add(new MigrationFile(version, description, filename, sqlContent));
+                    }
                 }
             }
         }
@@ -182,6 +210,19 @@ public class DatabaseMigrationService {
         migrationFiles.sort(Comparator.comparing(MigrationFile::getVersion));
         
         return migrationFiles;
+    }
+    
+    /**
+     * 检查是否存在对应的H2版本文件
+     */
+    private boolean hasH2Version(String filename, Resource[] allResources) {
+        String h2Version = filename.replace(".sql", ".h2.sql");
+        for (Resource resource : allResources) {
+            if (h2Version.equals(resource.getFilename())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
