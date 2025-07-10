@@ -33,7 +33,7 @@ spring:
   sql:
     init:
       mode: always
-            schema-locations: classpath:sql/dev-init.sql
+      data-locations: classpath:sql/dev-init.sql
 
 # MyBatis Plus配置
 mybatis-plus:

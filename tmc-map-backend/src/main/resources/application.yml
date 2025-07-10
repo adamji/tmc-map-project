@@ -39,9 +39,9 @@ spring:
     time-zone: GMT+8
     default-property-inclusion: non_null
 
-      sql:
-      init:
-        mode: never  # 默认禁用，由各环境配置文件控制
+  sql:
+    init:
+      mode: never  # 默认禁用，由各环境配置文件控制
 
 # MyBatis Plus配置
 mybatis-plus:

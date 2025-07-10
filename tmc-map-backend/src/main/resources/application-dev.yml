@@ -28,11 +28,11 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
     
-  # 数据库初始化配置 - 使用实际存在的文件
+  # 数据库初始化配置 - 使用开发环境初始化脚本
   sql:
     init:
       mode: always
-      schema-locations: classpath:sql/V1.0_create_version_table_h2.sql
+      data-locations: classpath:sql/dev-init.sql
     
   # H2控制台配置
   h2:
