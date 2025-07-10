@@ -1,0 +1,76 @@
+server:
+  port: 0  # 使用随机端口避免冲突
+
+spring:
+  application:
+    name: tmc-map-backend-test
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL;INIT=CREATE SCHEMA IF NOT EXISTS PUBLIC
+    username: sa
+    password: 
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 10000
+      idle-timeout: 300000
+      max-lifetime: 900000
+      leak-detection-threshold: 60000
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # 测试环境每次启动重新创建表
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.H2Dialect
+  sql:
+    init:
+      mode: never
+  h2:
+    console:
+      enabled: false
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false  # 测试环境关闭缓存
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# SpringDoc配置（测试环境关闭）
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# 日志配置
+logging:
+  level:
+    com.tmcmap: debug
+    org.springframework.web: warn
+    org.hibernate.SQL: warn
+    root: warn
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 自定义配置
+tmc:
+  map:
+    # 缓存配置
+    cache:
+      club-list-ttl: 60  # 测试环境缓存时间短
+      navigation-ttl: 30 

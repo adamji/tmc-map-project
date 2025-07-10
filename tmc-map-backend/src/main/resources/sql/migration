@@ -1,0 +1,4 @@
+-- 迁移脚本目录
+-- 所有增量更新SQL文件应放在此目录下
+-- 文件命名规则: V{版本号}_{描述}.sql
+-- 例如: V1.1_add_new_clubs.sql, V1.2_update_club_info.sql 

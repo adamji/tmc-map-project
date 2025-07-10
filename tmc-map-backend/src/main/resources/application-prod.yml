@@ -6,24 +6,30 @@ server:
 spring:
   application:
     name: tmc-map-backend
-  
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL:jdbc:mysql://sh-cynosdbmysql-grp-7985lgv0.sql.tencentcdb.com:23824/tmc_map?useSSL=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:Zc2fQCTX}
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 20
       minimum-idle: 5
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-    
+      leak-detection-threshold: 60000
   jpa:
     hibernate:
-      ddl-auto: update  # 自动创建表结构
+      ddl-auto: validate  # 生产环境只验证，不自动创建表
     show-sql: false
-    
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  # 生产环境SQL初始化配置 - 通过环境变量控制
+  sql:
+    init:
+      mode: never
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
@@ -59,8 +65,9 @@ mybatis-plus:
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
+  mapper-locations: classpath*:mapper/*.xml
 
-# SpringDoc配置
+# SpringDoc配置（生产环境关闭）
 springdoc:
   api-docs:
     enabled: false
@@ -72,17 +79,15 @@ logging:
   level:
     com.tmcmap: info
     org.springframework.web: warn
-    root: warn
+    org.hibernate.SQL: warn
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
     name: logs/tmc-map-backend.log
 
 # 自定义配置
 tmc:
   map:
-    # 缓存配置
     cache:
-      club-list-ttl: 3600 # 俱乐部列表缓存时间(秒)
-      navigation-ttl: 1800 # 导航信息缓存时间(秒) 
+      club-list-ttl: 1800  # 生产环境缓存时间较长
+      navigation-ttl: 3600 

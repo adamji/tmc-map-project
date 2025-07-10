@@ -9,32 +9,49 @@ spring:
   
   datasource:
     driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:tmc_map;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
     username: sa
     password: 
-    initialization-mode: always
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
     
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # 开发环境每次启动重新创建表
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+    
+  # 数据库初始化配置 - 使用实际存在的文件
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:sql/V1.0_create_version_table_h2.sql
+    
+  # H2控制台配置
   h2:
     console:
       enabled: true
       path: /h2-console
-      
+      settings:
+        web-allow-others: true
+    
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
     default-property-inclusion: non_null
 
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:schema-h2.sql
-      data-locations: classpath:data-h2.sql
-
 # MyBatis Plus配置
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
-    cache-enabled: false
+    cache-enabled: true
     call-setters-on-nulls: true
     jdbc-type-for-null: 'null'
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
@@ -44,37 +61,31 @@ mybatis-plus:
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
+  # 添加Mapper扫描配置
+  mapper-locations: classpath*:mapper/*.xml
 
 # SpringDoc配置
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    enabled: true
   swagger-ui:
+    enabled: true
     path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
 
 # 日志配置
 logging:
   level:
     com.tmcmap: debug
-    org.springframework.web: info
-    root: info
+    org.springframework.web: debug
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 # 自定义配置
 tmc:
   map:
-    # 地图API配置（开发环境使用模拟数据）
-    api:
-      tencent:
-        key: dev-test-key
-        base-url: https://apis.map.qq.com
-      amap:
-        key: dev-test-key
-        base-url: https://restapi.amap.com
     # 缓存配置
     cache:
-      club-list-ttl: 60 # 开发环境缓存时间短一些
-      navigation-ttl: 30 
+      club-list-ttl: 300 # 开发环境缓存时间较短
+      navigation-ttl: 180 
