@@ -1,42 +1,58 @@
 package com.tmcmap.model.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
- * 导航信息DTO
+ * 导航信息数据传输对象
  * 
  * @author tmcmap
  * @since 2024-01-01
  */
 @Data
-@Schema(description = "导航信息")
 public class NavigationDTO {
-
-    @Schema(description = "起点纬度")
+    
+    /**
+     * 起点纬度
+     */
     private Double fromLat;
-
-    @Schema(description = "起点经度")
+    
+    /**
+     * 起点经度
+     */
     private Double fromLng;
-
-    @Schema(description = "终点纬度")
+    
+    /**
+     * 终点纬度
+     */
     private Double toLat;
-
-    @Schema(description = "终点经度")
+    
+    /**
+     * 终点经度
+     */
     private Double toLng;
-
-    @Schema(description = "出行方式", example = "driving")
+    
+    /**
+     * 导航模式
+     */
     private String mode;
-
-    @Schema(description = "距离(米)")
+    
+    /**
+     * 距离（米）
+     */
     private Integer distance;
-
-    @Schema(description = "预计时间(秒)")
+    
+    /**
+     * 预计时长（秒）
+     */
     private Integer duration;
-
-    @Schema(description = "路线描述")
+    
+    /**
+     * 路线描述
+     */
     private String description;
-
-    @Schema(description = "推荐路线")
+    
+    /**
+     * 详细路线信息
+     */
     private String route;
 } 

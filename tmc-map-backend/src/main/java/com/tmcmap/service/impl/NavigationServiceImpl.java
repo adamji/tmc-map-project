@@ -16,23 +16,20 @@ import org.springframework.stereotype.Service;
 public class NavigationServiceImpl implements NavigationService {
 
     /**
-     * 地球半径(千米)
+     * 地球半径（千米）
      */
     private static final double EARTH_RADIUS = 6371.0;
 
     @Override
-    public NavigationDTO calculateRoute(Double fromLat, Double fromLng, 
-                                       Double toLat, Double toLng, String mode) {
-        log.info("计算导航路线，起点：{},{}，终点：{},{}，出行方式：{}", 
+    public NavigationDTO calculateRoute(Double fromLat, Double fromLng,
+                                      Double toLat, Double toLng, String mode) {
+        log.info("计算导航路线：起点({}, {}), 终点({}, {}), 模式: {}", 
                 fromLat, fromLng, toLat, toLng, mode);
-        
-        if (fromLat == null || fromLng == null || toLat == null || toLng == null) {
-            throw new IllegalArgumentException("坐标参数不能为空");
-        }
-        
+
         // 计算直线距离
         Double distance = calculateDistance(fromLat, fromLng, toLat, toLng);
         
+        // 模拟导航信息（实际项目中应该调用第三方地图API）
         NavigationDTO navigation = new NavigationDTO();
         navigation.setFromLat(fromLat);
         navigation.setFromLng(fromLng);
@@ -41,136 +38,96 @@ public class NavigationServiceImpl implements NavigationService {
         navigation.setMode(mode != null ? mode : "driving");
         navigation.setDistance(distance.intValue());
         
-        // 根据出行方式估算时间
-        Integer duration = calculateDuration(distance, mode);
+        // 根据模式估算时长（简化计算）
+        int duration = calculateEstimatedDuration(distance, mode);
         navigation.setDuration(duration);
         
-        // 生成路线描述
-        String description = generateDescription(distance, duration, mode);
+        // 生成描述信息
+        String description = generateRouteDescription(distance, duration, mode);
         navigation.setDescription(description);
         
-        // 生成推荐路线
-        String route = generateRoute(distance, mode);
+        // 模拟路线信息
+        String route = generateRouteInfo(fromLat, fromLng, toLat, toLng);
         navigation.setRoute(route);
         
-        log.info("导航计算完成，距离：{}米，时间：{}秒", distance.intValue(), duration);
+        log.info("导航路线计算完成：距离{}米，预计用时{}秒", distance, duration);
         return navigation;
     }
 
     @Override
     public Double calculateDistance(Double fromLat, Double fromLng, 
-                                   Double toLat, Double toLng) {
-        if (fromLat == null || fromLng == null || toLat == null || toLng == null) {
-            throw new IllegalArgumentException("坐标参数不能为空");
-        }
-        
-        // 使用Haversine公式计算球面距离
+                                  Double toLat, Double toLng) {
+        // 使用 Haversine 公式计算两点间的球面距离
         double lat1Rad = Math.toRadians(fromLat);
+        double lon1Rad = Math.toRadians(fromLng);
         double lat2Rad = Math.toRadians(toLat);
-        double deltaLatRad = Math.toRadians(toLat - fromLat);
-        double deltaLngRad = Math.toRadians(toLng - fromLng);
-        
-        double a = Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
+        double lon2Rad = Math.toRadians(toLng);
+
+        double deltaLat = lat2Rad - lat1Rad;
+        double deltaLon = lon2Rad - lon1Rad;
+
+        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
                    Math.cos(lat1Rad) * Math.cos(lat2Rad) *
-                   Math.sin(deltaLngRad / 2) * Math.sin(deltaLngRad / 2);
-        
+                   Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        
-        // 返回距离(米)
+
+        // 返回米为单位的距离
         return EARTH_RADIUS * c * 1000;
     }
 
     /**
-     * 根据距离和出行方式估算时间
-     * 
-     * @param distance 距离(米)
-     * @param mode 出行方式
-     * @return 时间(秒)
+     * 估算行程时长
      */
-    private Integer calculateDuration(Double distance, String mode) {
-        if (distance == null) {
-            return 0;
-        }
-        
-        double hours;
-        switch (mode != null ? mode : "driving") {
+    private int calculateEstimatedDuration(Double distance, String mode) {
+        double speed; // km/h
+        switch (mode != null ? mode.toLowerCase() : "driving") {
             case "walking":
-                // 步行速度约5km/h
-                hours = distance / 1000.0 / 5.0;
+                speed = 5.0; // 步行 5km/h
                 break;
             case "transit":
-                // 公交平均速度约20km/h
-                hours = distance / 1000.0 / 20.0;
+                speed = 25.0; // 公交 25km/h
                 break;
             case "driving":
             default:
-                // 驾车平均速度约40km/h
-                hours = distance / 1000.0 / 40.0;
+                speed = 40.0; // 驾车 40km/h
                 break;
         }
-        
-        return (int) (hours * 3600);
+        return (int) ((distance / 1000) / speed * 3600); // 转换为秒
     }
 
     /**
      * 生成路线描述
-     * 
-     * @param distance 距离(米)
-     * @param duration 时间(秒)
-     * @param mode 出行方式
-     * @return 描述文本
      */
-    private String generateDescription(Double distance, Integer duration, String mode) {
-        String modeText;
-        switch (mode != null ? mode : "driving") {
-            case "walking":
-                modeText = "步行";
-                break;
-            case "transit":
-                modeText = "公交";
-                break;
-            case "driving":
-            default:
-                modeText = "驾车";
-                break;
-        }
+    private String generateRouteDescription(Double distance, int duration, String mode) {
+        String modeText = getModeText(mode);
+        int minutes = duration / 60;
+        double km = distance / 1000.0;
         
-        String distanceText;
-        if (distance >= 1000) {
-            distanceText = String.format("%.1f公里", distance / 1000.0);
-        } else {
-            distanceText = String.format("%.0f米", distance);
-        }
-        
-        String durationText;
-        if (duration >= 3600) {
-            int hours = duration / 3600;
-            int minutes = (duration % 3600) / 60;
-            durationText = String.format("%d小时%d分钟", hours, minutes);
-        } else {
-            int minutes = duration / 60;
-            durationText = String.format("%d分钟", Math.max(1, minutes));
-        }
-        
-        return String.format("%s | %s | %s", modeText, durationText, distanceText);
+        return String.format("%s约%.1f公里，预计用时%d分钟", 
+                           modeText, km, minutes);
     }
 
     /**
-     * 生成推荐路线文本
-     * 
-     * @param distance 距离(米)
-     * @param mode 出行方式
-     * @return 路线文本
+     * 获取模式文本
      */
-    private String generateRoute(Double distance, String mode) {
-        if (distance < 500) {
-            return "就近步行即可到达";
-        } else if (distance < 2000) {
-            return "推荐步行或骑行前往";
-        } else if (distance < 10000) {
-            return "推荐打车或公交前往";
-        } else {
-            return "推荐驾车前往，可使用导航软件规划最佳路线";
+    private String getModeText(String mode) {
+        switch (mode != null ? mode.toLowerCase() : "driving") {
+            case "walking":
+                return "步行";
+            case "transit":
+                return "公交";
+            case "driving":
+            default:
+                return "驾车";
         }
+    }
+
+    /**
+     * 生成路线信息
+     */
+    private String generateRouteInfo(Double fromLat, Double fromLng, 
+                                   Double toLat, Double toLng) {
+        return String.format("从坐标点(%.4f, %.4f)到坐标点(%.4f, %.4f)的推荐路线", 
+                           fromLat, fromLng, toLat, toLng);
     }
 } 

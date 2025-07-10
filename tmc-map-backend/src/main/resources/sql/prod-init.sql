@@ -56,8 +56,9 @@ CREATE TABLE IF NOT EXISTS navigation_log (
     duration INT COMMENT '时长(秒)',
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     INDEX idx_club_id (club_id),
-    INDEX idx_create_time (create_time),
-    FOREIGN KEY (club_id) REFERENCES club(id) ON DELETE CASCADE
+    INDEX idx_create_time (create_time)
+    -- 注意: 暂不添加外键约束，避免部署时的约束冲突
+    -- FOREIGN KEY (club_id) REFERENCES club(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='导航记录表';
 
 -- 创建版本表 (用于数据库迁移)
