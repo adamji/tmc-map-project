@@ -33,6 +33,12 @@ public class Club {
     private String name;
 
     /**
+     * 俱乐部英文名称
+     */
+    @TableField("english_name")
+    private String englishName;
+
+    /**
      * 俱乐部简称
      */
     @TableField("short_name")

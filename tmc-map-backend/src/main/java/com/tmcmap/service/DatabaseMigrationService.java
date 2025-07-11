@@ -235,19 +235,45 @@ public class DatabaseMigrationService {
         
         try {
             System.out.println("📝 执行迁移: " + migrationFile.filename + " (" + migrationFile.description + ")");
+            System.out.println("🔍 SQL内容长度: " + migrationFile.sqlContent.length() + " 字符");
             
-            // 分割SQL语句并执行
-            String[] sqlStatements = migrationFile.sqlContent.split(";");
+            // 清理SQL内容，移除注释和空行
+            String cleanSql = migrationFile.sqlContent
+                .replaceAll("--.*", "")  // 移除单行注释
+                .replaceAll("/\\*[\\s\\S]*?\\*/", "")  // 移除多行注释
+                .trim();
             
+            if (cleanSql.isEmpty()) {
+                System.out.println("⚠️  SQL内容为空，跳过执行");
+                long executionTime = System.currentTimeMillis() - startTime;
+                recordMigrationExecution(migrationFile, status, executionTime, "SQL内容为空");
+                return;
+            }
+            
+            System.out.println("🔍 清理后SQL内容: " + cleanSql.substring(0, Math.min(100, cleanSql.length())) + "...");
+            
+            // 分割SQL语句并执行 - 改进的分割逻辑
+            String[] sqlStatements = cleanSql.split(";\\s*(?=\\w)");  // 按分号分割，但保留完整语句
+            
+            int executedCount = 0;
             for (String sql : sqlStatements) {
                 sql = sql.trim();
-                if (!sql.isEmpty() && !sql.startsWith("--")) {
+                if (!sql.isEmpty()) {
+                    System.out.println("🚀 执行SQL片段 " + (executedCount + 1) + ": " + 
+                        sql.substring(0, Math.min(50, sql.length())) + "...");
+                    
+                    // 如果SQL不以分号结尾，添加分号
+                    if (!sql.endsWith(";")) {
+                        sql += ";";
+                    }
+                    
                     jdbcTemplate.execute(sql);
+                    executedCount++;
                 }
             }
             
             long executionTime = System.currentTimeMillis() - startTime;
-            System.out.println("✅ 迁移成功: " + migrationFile.filename + " (耗时: " + executionTime + "ms)");
+            System.out.println("✅ 迁移成功: " + migrationFile.filename + " (执行了 " + executedCount + " 条SQL，耗时: " + executionTime + "ms)");
             
             // 记录执行结果
             recordMigrationExecution(migrationFile, status, executionTime, errorMessage);
@@ -258,6 +284,7 @@ public class DatabaseMigrationService {
             status = "FAILED";
             
             System.err.println("❌ 迁移失败: " + migrationFile.filename + " - " + errorMessage);
+            e.printStackTrace();
             
             // 记录执行结果
             recordMigrationExecution(migrationFile, status, executionTime, errorMessage);

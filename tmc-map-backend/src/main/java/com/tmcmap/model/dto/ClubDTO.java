@@ -16,10 +16,19 @@ public class ClubDTO {
     @Schema(description = "俱乐部ID")
     private Long id;
 
-    @Schema(description = "俱乐部名称")
+    /**
+     * 俱乐部名称
+     */
     private String name;
 
-    @Schema(description = "俱乐部简称")
+    /**
+     * 俱乐部英文名称
+     */
+    private String englishName;
+
+    /**
+     * 俱乐部简称
+     */
     private String shortName;
 
     @Schema(description = "地址")

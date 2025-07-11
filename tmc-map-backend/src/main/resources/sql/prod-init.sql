@@ -1,6 +1,6 @@
--- 生产环境初始化脚本 (支持增量迁移版本)
+-- 生产环境初始化脚本
 -- 适用于MySQL数据库，与Entity类字段完全匹配
--- 注意：此脚本仅在首次部署时自动执行，后续通过增量迁移更新
+-- 包含完整的数据库结构和初始数据
 
 -- 注意：在生产环境中，通常需要手动创建数据库
 -- CREATE DATABASE IF NOT EXISTS tmc_map 
@@ -8,14 +8,15 @@
 -- COLLATE utf8mb4_unicode_ci;
 -- USE tmc_map;
 
--- 创建俱乐部表 (生产环境 - 统一使用详细字段名)
+-- 创建俱乐部表 (生产环境 - MySQL版本)
 CREATE TABLE IF NOT EXISTS club (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     name VARCHAR(200) NOT NULL COMMENT '俱乐部名称',
+    english_name VARCHAR(200) COMMENT '俱乐部英文名称',
     short_name VARCHAR(100) COMMENT '俱乐部简称',
     address VARCHAR(500) NOT NULL COMMENT '地址',
-    latitude DECIMAL(10,7) NOT NULL COMMENT '纬度',
-    longitude DECIMAL(10,7) NOT NULL COMMENT '经度',
+    latitude DECIMAL(10,7) COMMENT '纬度',
+    longitude DECIMAL(10,7) COMMENT '经度',
     city VARCHAR(50) NOT NULL COMMENT '城市',
     meeting_time VARCHAR(200) COMMENT '例会时间',
     meeting_format VARCHAR(100) COMMENT '会议形式',
@@ -32,7 +33,8 @@ CREATE TABLE IF NOT EXISTS club (
     INDEX idx_location (latitude, longitude),
     INDEX idx_status (status, deleted),
     INDEX idx_meeting_time (meeting_time),
-    INDEX idx_city_status (city, status, deleted)
+    INDEX idx_city_status (city, status, deleted),
+    INDEX idx_english_name (english_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='头马俱乐部信息表';
 
 -- 创建导航记录表（可选，用于统计分析）
@@ -67,14 +69,25 @@ CREATE TABLE IF NOT EXISTS db_version (
     INDEX idx_executed_at (executed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='数据库版本管理表';
 
--- 插入生产基础数据（仅首次部署时执行）
-INSERT IGNORE INTO club (name, short_name, address, latitude, longitude, city, meeting_time, meeting_format, contact, contact_phone, contact_wechat, features, remarks) VALUES 
-('深圳四合院国际演讲俱乐部', '四合院TMC', '深圳市福田区莲花西第一世界广场大厦18A四合院', 22.5431, 114.0579, '深圳', '周一 19:30-21:30', '双语', 'Sherry YANG', '13603014039', 'sherry_yang_wechat', '位于福田中心区，交通便利，双语环境', '欢迎英语爱好者加入'),
-('江宁双语SH俱乐部', 'SH', '南京市江宁经济技术开发区双龙大道1539号21世纪太阳城小卢可童书馆', 31.9558, 118.8420, '南京', '周日 18:30-20:30', '双语', '清思', '18351444832', 'qingsi_wechat', '外企留学，脱口秀，学习小组', '提高英语提高表达提高领导力首选'),
-('广州天河国际演讲俱乐部', '天河TMC', '广州市天河区天河路208号粤海天河城大厦4001', 23.1350, 113.3261, '广州', '周六 14:30-16:30', '双语', 'Michael HUANG', '13500135001', 'michael_huang_wechat', '天河CBD核心地段', '周末聚会，轻松氛围'),
-('上海浦东国际演讲俱乐部', '浦东TMC', '上海市浦东新区陆家嘴环路1000号恒生银行大厦3楼', 31.2351, 121.5035, '上海', '周一 19:00-21:00', '双语', 'Kevin ZHANG', '13300133001', 'kevin_zhang_wechat', '陆家嘴金融区', '国际金融精英聚集地'),
-('北京朝阳国际演讲俱乐部', '朝阳TMC', '北京市朝阳区建国门外大街1号国贸三期B座55层', 39.9097, 116.4589, '北京', '周二 19:00-21:00', '双语', 'Tony WANG', '13100131001', 'tony_wang_wechat', 'CBD核心区域', '首都商务精英俱乐部');
+-- 插入完整的俱乐部数据
+INSERT IGNORE INTO club (name, english_name, short_name, address, latitude, longitude, city, meeting_time, meeting_format, contact, contact_phone, contact_wechat, features, remarks, status, deleted) VALUES 
+('江宁双语SH俱乐部', 'Jiangning Bilingual Springhead Toastmasters Club', 'SH', '南京市江宁经济技术开发区双龙大道1539号21世纪太阳城小卢可童书馆', 31.9558, 118.842, '南京', '周日 18:30-20:30', '双语', '清思', '18351444832', 'jiqingsi_0114', '外企留学，脱口秀，学习小组', '提高英语提高表达提高领导力首选', 1, 0),
+('福特南京俱乐部', 'Ford Nanjing Toastmasters Club', '', '南京市江宁区将军大道118号福特汽车研发中心', NULL, NULL, '南京', '周五11:40-13:00', '企业', '', '', '', '', '', 1, 0),
+('CXL俱乐部', 'CXL Toastmasters Club', '', '徐州市金山桥开发区驮蓝山路19号卡特彼勒徐州有限公司', NULL, NULL, '徐州', '周四16:40-18:10', '企业', '', '', '', '', '', 1, 0),
+('GPT俱乐部', 'GPT Toastmasters Club', '', '江苏集萃药康生物科技股份有限公司江北新区学府路12号', NULL, NULL, '南京', '周四19:00-21:00', '企业', '', '', '', '', '', 1, 0),
+('徐州第一中文俱乐部', 'Xuzhou First Mandarin', '', '徐州市苏宁广场A塔IFC金融中心19A楼AIA', NULL, NULL, '徐州', '周三20:00- 21:40', '线上', '', '', '', '', '', 1, 0),
+('南京ET俱乐部', 'Nanjing Student Elite Toastmasters Club', '', '江苏省南京市大行宫长发中心A座908', NULL, NULL, '南京', '周日14:30-17:00', '社区', '', '', '', '', '', 1, 0),
+('南京菁英管理俱乐部', 'NJ Elite Management TMC', '', '上海路五星年华大厦1006室', NULL, NULL, '南京', '周日10:00-12:00', '社区', '', '', '', '', '', 1, 0),
+('泰康仙林鼓楼俱乐部', 'Taikang Xianlin Drum Tower Toastmasters Club', '', '南京市栖霞区灵山北路188号泰康仙林鼓楼医院二期 开泰楼会议室1', NULL, NULL, '南京', '周五12:00-13:30', '企业', '', '', '', '', '', 1, 0),
+('南京职业演讲家俱乐部', 'Nanjing Professional Speaker Advanced Toastmasters Club', '', '上海路五星年华大厦1006室', NULL, NULL, '南京', '周五（隔周）19:15-21：15', '社区', '', '', '', '', '', 1, 0),
+('南京SS俱乐部', 'Alcatel-Lucent Smart Speakers Nanjing', '', '大行宫新世纪广场A座811室HR共创空间', NULL, NULL, '南京', '周二19:15-21:00', '社区', '予欣', '18351896875', 'zzyx150402', '', '', 1, 0),
+('南京TTT俱乐部', 'Nanjing TTT Toastmasters Club', '', '南京市秦淮区中山东路300号长发中心A座908室', NULL, NULL, '南京', '周日10:00-12:30', '社区', '杨琴', '18115131600', '1290877848', '', '', 1, 0),
+('南京自信力俱乐部', 'Nanjing Confidence Toastmasters Club', '', '玄武白马山庄1号楼', NULL, NULL, '南京', '周一19:00-21:00', '社区', '庄莉红', '18651875711', '18651875711', '辩论，国兴，演讲提升', '提高沟通力和领导力，培养自信的演说家', 1, 0),
+('合肥No.1俱乐部', 'HeFei No.1 Toastmasters Club', '', '三孝口先锋悦书房', NULL, NULL, '合肥', '周日10:00-12:30', '社区', '', '', '', '', '', 1, 0),
+('AACTP合肥俱乐部', 'A.A.C.T.P. HeFei Toastmasters Club', '', '蜀山区华邦大厦A座20层', NULL, NULL, '合肥', '周日10:00-12:20', '社区', '', '', '', '', '', 1, 0),
+('飞马合肥俱乐部', 'FeiMa Toastmasters Club', '', '中海原山小区44栋邻聚益家党群服务站', NULL, NULL, '合肥', '周日10:00-12:20', '社区', '', '', '', '', '', 1, 0),
+('Xylem A俱乐部', 'Xylem A Toastmasters Club', '', '江苏省南京市六合区经济开发区龙阳路18号', NULL, NULL, '南京', '周一19:00-21:00', '企业', '', '', '', '', '', 1, 0);
 
--- 记录初始版本（使用INSERT IGNORE避免重复）
+-- 记录初始版本
 INSERT IGNORE INTO db_version (version, description, sql_file) VALUES 
-('1.0', 'Production environment initialization', 'prod-init.sql'); 
+('1.0', 'Production environment initialization with complete data', 'prod-init.sql'); 
