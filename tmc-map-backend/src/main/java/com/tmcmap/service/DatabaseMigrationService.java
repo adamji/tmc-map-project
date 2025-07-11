@@ -167,11 +167,16 @@ public class DatabaseMigrationService {
         List<MigrationFile> migrationFiles = new ArrayList<>();
         String dbType = getDatabaseType();
         
+        System.out.println("🔍 开始扫描迁移文件，数据库类型: " + dbType);
+        
         // 获取 sql 目录下的所有文件
         Resource[] resources = resourceResolver.getResources("classpath*:sql/V*.sql");
+        System.out.println("📁 找到 " + resources.length + " 个V*.sql文件");
         
         for (Resource resource : resources) {
             String filename = resource.getFilename();
+            System.out.println("📄 检查文件: " + filename);
+            
             if (filename != null && filename.startsWith("V") && filename.endsWith(".sql")) {
                 
                 // 根据数据库类型选择合适的文件
@@ -180,19 +185,27 @@ public class DatabaseMigrationService {
                     // H2优先使用.h2.sql文件，如果不存在则使用.sql文件
                     if (filename.contains(".h2.sql")) {
                         shouldInclude = true;
+                        System.out.println("✅ H2文件匹配: " + filename);
                     } else if (!filename.contains(".h2.sql") && !hasH2Version(filename, resources)) {
                         shouldInclude = true;
+                        System.out.println("✅ 通用文件匹配(无H2版本): " + filename);
+                    } else {
+                        System.out.println("❌ 跳过文件(有H2版本): " + filename);
                     }
                 } else {
                     // MySQL只使用.sql文件（不包含.h2.sql）
                     shouldInclude = !filename.contains(".h2.sql");
+                    System.out.println(shouldInclude ? "✅ MySQL文件匹配: " + filename : "❌ 跳过H2文件: " + filename);
                 }
                 
                 if (shouldInclude) {
+                    System.out.println("🔍 检查版本号格式: " + filename);
                     Matcher matcher = VERSION_PATTERN.matcher(filename);
                     if (matcher.matches()) {
                         String version = matcher.group(1);
                         String description = matcher.group(2).replace("_", " ");
+                        
+                        System.out.println("✅ 版本号匹配: " + version + " - " + description);
                         
                         // 读取SQL内容
                         String sqlContent = StreamUtils.copyToString(
@@ -201,13 +214,22 @@ public class DatabaseMigrationService {
                         );
                         
                         migrationFiles.add(new MigrationFile(version, description, filename, sqlContent));
+                        System.out.println("✅ 添加迁移文件: " + filename);
+                    } else {
+                        System.out.println("❌ 版本号格式不匹配: " + filename + " (期望格式: V1.0_description.sql)");
                     }
+                } else {
+                    System.out.println("❌ 文件不符合数据库类型要求: " + filename);
                 }
+            } else {
+                System.out.println("❌ 文件名不符合V*.sql格式: " + filename);
             }
         }
         
         // 按版本号排序
         migrationFiles.sort(Comparator.comparing(MigrationFile::getVersion));
+        
+        System.out.println("📊 最终找到 " + migrationFiles.size() + " 个待执行的迁移文件");
         
         return migrationFiles;
     }
